@@ -24,18 +24,31 @@ export const handler = async (event: APIGatewayProxyEvent, context: Context): Pr
     }
   })
 
-  const signature = event.headers['X-Signature-Ed25519']
-  const timestamp = event.headers['X-Signature-Timestamp']
-  const body = event.body
+  const lowercaseHeaders = Object.fromEntries(
+    Object.entries(event.headers).map(([key, value]) => [key.toLowerCase(), value])
+  )
+  const signature = lowercaseHeaders['x-signature-ed25519']
+  const timestamp = lowercaseHeaders['x-signature-timestamp']
+  const body = event.body!
+  console.log('body', event)
 
-  if (!verifyKey(body!, signature!, timestamp!, publicKey)) {
+  if (!verifyKey(body, signature!, timestamp!, publicKey)) {
     return {
       statusCode: 401,
       body: JSON.stringify({ message: 'Invalid request signature' })
     }
   }
 
-  client.emit(Events.InteractionCreate, JSON.parse(body!) as Interaction)
+  const bodyObject = JSON.parse(body)
+
+  if (bodyObject.type === 1) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ type: 1 })
+    }
+  }
+
+  client.emit(Events.InteractionCreate, bodyObject as Interaction)
 
   // client.login(discordToken)
 
