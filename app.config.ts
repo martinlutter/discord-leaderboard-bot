@@ -18,7 +18,8 @@ const myLambda = new NodejsFunction(stack, 'MyLambda', {
     minify: true
   },
   environment: {
-    APPLICATION_PUBLIC_KEY: process.env.APPLICATION_PUBLIC_KEY!
+    APPLICATION_PUBLIC_KEY: process.env.APPLICATION_PUBLIC_KEY!,
+    DISCORD_TOKEN: process.env.DISCORD_TOKEN!
   },
   logRetention: RetentionDays.ONE_MONTH,
   timeout: cdk.Duration.seconds(4),
@@ -35,9 +36,5 @@ const api = new apigateway.RestApi(stack, 'MyApi', {
 const lambdaIntegration = new apigateway.LambdaIntegration(myLambda)
 
 api.root.addMethod('POST', lambdaIntegration)
-
-new cdk.CfnOutput(stack, 'MyApiUrl', {
-  value: api.url
-})
 
 app.synth()
