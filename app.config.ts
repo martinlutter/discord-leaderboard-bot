@@ -1,9 +1,9 @@
 import * as cdk from 'aws-cdk-lib'
+import * as apigateway from 'aws-cdk-lib/aws-apigateway'
 import * as lambda from 'aws-cdk-lib/aws-lambda'
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
-import * as apigateway from 'aws-cdk-lib/aws-apigateway'
-import { config } from 'dotenv'
 import { RetentionDays } from 'aws-cdk-lib/aws-logs'
+import { config } from 'dotenv'
 
 config()
 

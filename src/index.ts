@@ -1,14 +1,16 @@
+import { type SlashCommandBuilder } from '@discordjs/builders'
 import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } from 'aws-lambda'
+import { type APIChatInputApplicationCommandInteraction, type APIInteractionResponse } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions'
-import { type APIChatInputApplicationCommandInteraction, type APIApplicationCommandInteractionDataStringOption } from 'discord-api-types/v10'
-import { REST } from '@discordjs/rest'
-import { API } from '@discordjs/core/http-only'
+import { commands } from '../scripts/deployCommands'
 
-const discordToken = process.env.DISCORD_TOKEN!
+export interface Command {
+  builder: Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>
+  execute: (interaction: APIChatInputApplicationCommandInteraction) => Promise<APIInteractionResponse>
+}
+
+// const discordToken = process.env.DISCORD_TOKEN!
 const publicKey = process.env.APPLICATION_PUBLIC_KEY!
-
-const rest = new REST({ version: '10' }).setToken(discordToken)
-const api = new API(rest)
 
 export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
   const lowercaseHeaders = Object.fromEntries(
@@ -37,44 +39,18 @@ export const handler = async (event: APIGatewayProxyEvent, context: Context): Pr
 
   if (bodyObject.type === InteractionType.APPLICATION_COMMAND) {
     const interaction = bodyObject as APIChatInputApplicationCommandInteraction
+    const command = commands.find(command => command.builder.name === interaction.data.name)
 
-    if (interaction.data.name === 'ping') {
+    if (!command) {
       return {
-        statusCode: 200,
-        body: JSON.stringify({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            content: 'Pong!'
-          }
-        })
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Command not found' })
       }
     }
 
-    if (interaction.data.name === 'user') {
-      const target = (interaction.data.options?.find(option => option.name === 'target') as APIApplicationCommandInteractionDataStringOption | null)?.value
-      console.log(target)
-      const user = interaction.data.resolved?.users?.[target!]
-      if (!user) {
-        return {
-          statusCode: 200,
-          body: JSON.stringify({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              content: 'User not found'
-            }
-          })
-        }
-      }
-
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            content: `User: ${user.username} - ${user.email}`
-          }
-        })
-      }
+    return {
+      statusCode: 200,
+      body: JSON.stringify(await command.execute(interaction))
     }
   }
 
