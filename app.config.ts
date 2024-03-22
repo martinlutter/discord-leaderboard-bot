@@ -21,7 +21,7 @@ const myLambda = new NodejsFunction(stack, 'MyLambda', {
     APPLICATION_PUBLIC_KEY: process.env.APPLICATION_PUBLIC_KEY!,
     DISCORD_TOKEN: process.env.DISCORD_TOKEN!
   },
-  logRetention: RetentionDays.ONE_MONTH,
+  logRetention: RetentionDays.ONE_WEEK,
   timeout: cdk.Duration.seconds(4),
   memorySize: 256
 })
@@ -29,7 +29,9 @@ const myLambda = new NodejsFunction(stack, 'MyLambda', {
 const api = new apigateway.RestApi(stack, 'MyApi', {
   restApiName: 'My API',
   deployOptions: {
-    stageName: 'prod'
+    stageName: 'prod',
+    throttlingRateLimit: 10,
+    throttlingBurstLimit: 20
   }
 })
 

@@ -1,8 +1,7 @@
 import { REST } from '@discordjs/rest'
 import { Routes } from 'discord-api-types/v10'
 import { config } from 'dotenv'
-import { pingCommand } from '../src/commands/ping'
-import { userCommand } from '../src/commands/user'
+import { voteCommand } from '../src/commands/vote'
 
 config()
 
@@ -11,8 +10,7 @@ const token = process.env.DISCORD_TOKEN!
 const guildId = process.env.GUILD_ID!
 
 export const commands = [
-  pingCommand,
-  userCommand
+  voteCommand
 ]
 
 const rest = new REST({ version: '10' }).setToken(token)
