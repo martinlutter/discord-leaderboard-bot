@@ -1,16 +1,25 @@
-import { type SlashCommandBuilder } from '@discordjs/builders'
+import { DynamoDB } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb'
+import { type ContextMenuCommandBuilder, type SlashCommandBuilder } from '@discordjs/builders'
 import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } from 'aws-lambda'
-import { type APIChatInputApplicationCommandInteraction, type APIInteractionResponse } from 'discord-api-types/v10'
+import { type APIChatInputApplicationCommandInteraction, type APIInteractionResponse, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions'
-import { commands } from '../scripts/deployCommands'
+import { voteCommand } from './commands/vote'
 
 export interface Command {
-  builder: Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>
-  execute: (interaction: APIChatInputApplicationCommandInteraction) => Promise<APIInteractionResponse>
+  builder: Omit<SlashCommandBuilder | ContextMenuCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>
+  execute: (interaction: APIChatInputApplicationCommandInteraction | APIMessageApplicationCommandInteraction) => Promise<APIInteractionResponse>
 }
+
+export const commands = [
+  voteCommand
+]
 
 // const discordToken = process.env.DISCORD_TOKEN!
 const publicKey = process.env.APPLICATION_PUBLIC_KEY!
+
+const client = new DynamoDB()
+export const db = DynamoDBDocument.from(client)
 
 export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
   const lowercaseHeaders = Object.fromEntries(
@@ -28,7 +37,6 @@ export const handler = async (event: APIGatewayProxyEvent, context: Context): Pr
   }
 
   const bodyObject = JSON.parse(body)
-  console.log(bodyObject)
 
   if (bodyObject.type === InteractionType.PING) {
     return {
