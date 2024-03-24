@@ -1,34 +1,37 @@
-import * as cdk from 'aws-cdk-lib'
-import * as apigateway from 'aws-cdk-lib/aws-apigateway'
+import { App, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib'
+import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway'
 import { AttributeType, TableV2 } from 'aws-cdk-lib/aws-dynamodb'
-import * as lambda from 'aws-cdk-lib/aws-lambda'
+import { Rule, Schedule } from 'aws-cdk-lib/aws-events'
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets'
+import { Runtime } from 'aws-cdk-lib/aws-lambda'
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
 import { RetentionDays } from 'aws-cdk-lib/aws-logs'
 import { config } from 'dotenv'
 
 config()
+const leaderboardTableName = 'LeaderboardTable'
 
-const app = new cdk.App()
+const app = new App()
 
-const stack = new cdk.Stack(app, 'LeaderboardBot')
+const stack = new Stack(app, 'LeaderboardBot')
 
 const interactionLambda = new NodejsFunction(stack, 'BotInteraction', {
-  runtime: lambda.Runtime.NODEJS_20_X,
+  runtime: Runtime.NODEJS_20_X,
   entry: 'src/index.ts',
   bundling: {
-    minify: false,
-    sourceMap: true
+    minify: true
   },
   environment: {
     APPLICATION_PUBLIC_KEY: process.env.APPLICATION_PUBLIC_KEY!,
-    DISCORD_TOKEN: process.env.DISCORD_TOKEN!
+    DISCORD_TOKEN: process.env.DISCORD_TOKEN!,
+    LEADERBOARD_TABLE_NAME: leaderboardTableName
   },
   logRetention: RetentionDays.ONE_WEEK,
-  timeout: cdk.Duration.seconds(4),
+  timeout: Duration.seconds(4),
   memorySize: 256
 })
 
-const api = new apigateway.RestApi(stack, 'BotInteractionEndpoint', {
+const api = new RestApi(stack, 'BotInteractionEndpoint', {
   deployOptions: {
     stageName: 'prod',
     throttlingRateLimit: 10,
@@ -36,16 +39,37 @@ const api = new apigateway.RestApi(stack, 'BotInteractionEndpoint', {
   }
 })
 
-api.root.addMethod('POST', new apigateway.LambdaIntegration(interactionLambda))
+api.root.addMethod('POST', new LambdaIntegration(interactionLambda))
+
+const closeMonthLambda = new NodejsFunction(stack, 'CloseMonth', {
+  runtime: Runtime.NODEJS_20_X,
+  entry: 'src/closeMonth.ts',
+  bundling: {
+    minify: true
+  },
+  environment: {
+    CHANNEL_ID: process.env.CHANNEL_ID!,
+    DISCORD_TOKEN: process.env.DISCORD_TOKEN!,
+    LEADERBOARD_TABLE_NAME: leaderboardTableName
+  },
+  logRetention: RetentionDays.ONE_WEEK,
+  timeout: Duration.seconds(10),
+  memorySize: 256
+})
+
+const monthlyRule = new Rule(stack, 'MonthlyCron', {
+  schedule: Schedule.cron({ minute: '0', hour: '0', day: '1', month: '*' })
+})
+
+monthlyRule.addTarget(new LambdaFunction(closeMonthLambda))
 
 const leaderboardTable = new TableV2(stack, 'LeaderboardTable', {
   tableName: 'LeaderboardTable',
   partitionKey: { name: 'pk', type: AttributeType.STRING },
   sortKey: { name: 'sk', type: AttributeType.STRING },
-  removalPolicy: cdk.RemovalPolicy.DESTROY
+  removalPolicy: RemovalPolicy.DESTROY
 })
 leaderboardTable.grantReadWriteData(interactionLambda)
-
-interactionLambda.addEnvironment('LEADERBOARD_TABLE_NAME', 'LeaderboardTable')
+leaderboardTable.grantReadWriteData(closeMonthLambda)
 
 app.synth()

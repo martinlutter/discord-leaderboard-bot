@@ -1,5 +1,5 @@
-import { db } from '..'
-import { leaderboardTableName } from '../commands/vote'
+import { db } from './client'
+import { leaderboardTableName } from './constants'
 import { type UserVotes } from './model/userVotes'
 
 export async function voteForUser (votee: { id: string, username: string }): Promise<UserVotes> {

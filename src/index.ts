@@ -1,5 +1,3 @@
-import { DynamoDB } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb'
 import { type ContextMenuCommandBuilder, type SlashCommandBuilder } from '@discordjs/builders'
 import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } from 'aws-lambda'
 import { type APIChatInputApplicationCommandInteraction, type APIInteractionResponse, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
@@ -19,9 +17,6 @@ export const commands = [
 
 // const discordToken = process.env.DISCORD_TOKEN!
 const publicKey = process.env.APPLICATION_PUBLIC_KEY!
-
-const client = new DynamoDB()
-export const db = DynamoDBDocument.from(client)
 
 export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
   const lowercaseHeaders = Object.fromEntries(

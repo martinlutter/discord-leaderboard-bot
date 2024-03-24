@@ -4,7 +4,6 @@
   "description": "crud custom leaderboards in a discord server",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node src/index.ts",
     "build": "tsc",
     "deploy": "cdk deploy --profile discord-leaderboard-bot"
   },

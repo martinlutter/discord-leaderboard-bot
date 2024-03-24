@@ -1,8 +1,7 @@
 import { db } from './client'
 import { leaderboardTableName } from './constants'
-import { type Leaderboard } from './model/leaderboard'
 
-export async function getLeaderboard (): Promise<Leaderboard> {
+export async function clearVotesFromUsers (): Promise<void> {
   const result = await db.query({
     TableName: leaderboardTableName,
     KeyConditionExpression: 'pk = :pk',
@@ -11,10 +10,13 @@ export async function getLeaderboard (): Promise<Leaderboard> {
     }
   })
 
-  return {
-    users: result.Items!.map(item => ({
-      name: item.name,
-      count: item.count
+  await Promise.all(
+    result.Items!.map(async item => await db.delete({
+      TableName: leaderboardTableName,
+      Key: {
+        pk: 'votes',
+        sk: item.sk
+      }
     }))
-  }
+  )
 }
