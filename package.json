@@ -5,7 +5,8 @@
   "main": "index.ts",
   "scripts": {
     "build": "tsc",
-    "deploy": "cdk deploy --profile discord-leaderboard-bot"
+    "deploy": "cdk deploy --profile discord-leaderboard-bot",
+    "deploy:commands": "ts-node scripts/deployCommands.ts"
   },
   "keywords": [
     "discord",
