@@ -1,20 +1,11 @@
-import { type PutCommandOutput, type UpdateCommandOutput } from '@aws-sdk/lib-dynamodb'
+import { type PutCommandOutput, type QueryCommandOutput, type UpdateCommandOutput } from '@aws-sdk/lib-dynamodb'
 import { ContextMenuCommandBuilder, EmbedBuilder } from '@discordjs/builders'
 import { isContextMenuApplicationCommandInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandType, InteractionResponseType, MessageFlags, type APIChatInputApplicationCommandInteraction, type APIEmbedField, type APIInteractionResponseChannelMessageWithSource, type APIMessage, type APIMessageApplicationCommandInteraction, type APIUser } from 'discord-api-types/v10'
 import { db, type Command } from '..'
 
-// const USER_OPTION_NAME = 'user'
 export const leaderboardTableName = process.env.LEADERBOARD_TABLE_NAME!
 
-// const builder = new SlashCommandBuilder()
-//   .setName('vote')
-//   .setDescription('Give your vote to a user.')
-//   .addUserOption(option => option
-//     .setName(USER_OPTION_NAME)
-//     .setDescription('The user you want to vote for.')
-//     .setRequired(true)
-//   )
 const builder = new ContextMenuCommandBuilder()
   .setName('vote')
   .setType(ApplicationCommandType.Message)
@@ -23,9 +14,6 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
   if (!isContextMenuApplicationCommandInteraction(interaction)) {
     throw new Error('Expected a context menu interaction')
   }
-
-  console.log('interaction', interaction)
-  console.log('interaction', interaction.data.resolved?.messages)
 
   const messages = interaction.data.resolved?.messages
   if (!messages) {
@@ -53,28 +41,26 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
   // }
 
   const currentWeekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))
-  if (await hasUserVotedThisWeek(voter.id, currentWeekNumber)) {
-    return {
-      type: InteractionResponseType.ChannelMessageWithSource,
-      data: {
-        content: 'You have already voted this week',
-        flags: MessageFlags.Ephemeral
-      }
-    }
-  }
-  await db.query({
-    TableName: leaderboardTableName,
-    KeyConditionExpression: 'pk = :pk',
-    ExpressionAttributeValues: {
-      ':pk': 'user'
-    }
-  })
+  // if (await hasUserVotedThisWeek(voter.id, currentWeekNumber)) {
+  //   return {
+  //     type: InteractionResponseType.ChannelMessageWithSource,
+  //     data: {
+  //       content: 'You have already voted this week',
+  //       flags: MessageFlags.Ephemeral
+  //     }
+  //   }
+  // }
 
   const saveVotePromise = saveVote(voter, currentWeekNumber, message, messageId)
   const incrementVotesResult = await incrementVotes(votee)
   const currentVotes = Number(incrementVotesResult.Attributes?.count)
-  // todo: should probably invert partition and sort keys so we don't have to keep a singleton leaderboard record but can query all voted users instead
-  const leaderboardResult = await updateLeaderboard(votee, currentVotes)
+  const leaderboardResult = await db.query({
+    TableName: leaderboardTableName,
+    KeyConditionExpression: 'pk = :pk',
+    ExpressionAttributeValues: {
+      ':pk': 'votes'
+    }
+  })
 
   await saveVotePromise
 
@@ -95,9 +81,8 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
 
 export const voteCommand: Command = { builder, execute }
 
-function transformLeaderboardIntoEmbedFields (leaderboardResult: UpdateCommandOutput): APIEmbedField[] {
-  return Object.entries(leaderboardResult.Attributes!)
-    .filter(([key, value]) => key.startsWith('user'))
+function transformLeaderboardIntoEmbedFields (leaderboardResult: QueryCommandOutput): APIEmbedField[] {
+  return Object.entries(leaderboardResult.Items ?? {})
     .map(([key, value]): APIEmbedField => {
       return {
         name: value.name,
@@ -108,33 +93,12 @@ function transformLeaderboardIntoEmbedFields (leaderboardResult: UpdateCommandOu
     .slice(0, 24)
 }
 
-async function updateLeaderboard (votee: APIUser, currentVotes: number): Promise<UpdateCommandOutput> {
-  return await db.update({
-    TableName: leaderboardTableName,
-    Key: {
-      pk: 'leaderboard',
-      sk: 'votes'
-    },
-    UpdateExpression: 'SET #user = :user',
-    ExpressionAttributeNames: {
-      '#user': `user${votee.id}`
-    },
-    ExpressionAttributeValues: {
-      ':user': {
-        name: votee.username,
-        count: currentVotes
-      }
-    },
-    ReturnValues: 'ALL_NEW'
-  })
-}
-
 async function saveVote (voter: APIUser, currentWeekNumber: number, message: APIMessage, messageId: string): Promise<PutCommandOutput> {
   return await db.put({
     TableName: leaderboardTableName,
     Item: {
-      pk: `user${voter.id}`,
-      sk: `vote${currentWeekNumber}`,
+      pk: `vote${currentWeekNumber}`,
+      sk: `user${voter.id}`,
       votedAt: new Date().toISOString(),
       channelId: message.channel_id,
       messageId
@@ -146,15 +110,17 @@ async function incrementVotes (votee: APIUser): Promise<UpdateCommandOutput> {
   return await db.update({
     TableName: leaderboardTableName,
     Key: {
-      pk: `user${votee.id}`,
-      sk: 'votes'
+      pk: 'votes',
+      sk: `user${votee.id}`
     },
-    UpdateExpression: 'ADD #count :inc',
+    UpdateExpression: 'ADD #count :inc SET #name = :name',
     ExpressionAttributeNames: {
-      '#count': 'count'
+      '#count': 'count',
+      '#name': 'name'
     },
     ExpressionAttributeValues: {
-      ':inc': 1
+      ':inc': 1,
+      ':name': votee.username
     },
     ReturnValues: 'ALL_NEW'
   })
@@ -164,8 +130,8 @@ async function hasUserVotedThisWeek (userId: string, weekNumber: number): Promis
   const result = await db.get({
     TableName: leaderboardTableName,
     Key: {
-      pk: `user${userId}`,
-      sk: `vote${weekNumber}`
+      pk: `vote${weekNumber}`,
+      sk: `user${userId}`
     }
   })
 
