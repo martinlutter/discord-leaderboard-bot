@@ -4,6 +4,7 @@ import { type ContextMenuCommandBuilder, type SlashCommandBuilder } from '@disco
 import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } from 'aws-lambda'
 import { type APIChatInputApplicationCommandInteraction, type APIInteractionResponse, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions'
+import { showLeaderboardCommand } from './commands/showLeaderboard'
 import { voteCommand } from './commands/vote'
 
 export interface Command {
@@ -12,7 +13,8 @@ export interface Command {
 }
 
 export const commands = [
-  voteCommand
+  voteCommand,
+  showLeaderboardCommand
 ]
 
 // const discordToken = process.env.DISCORD_TOKEN!
