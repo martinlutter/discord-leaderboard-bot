@@ -2,6 +2,7 @@ import { ContextMenuCommandBuilder } from '@discordjs/builders'
 import { isContextMenuApplicationCommandInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandType, InteractionResponseType, MessageFlags, type APIChatInputApplicationCommandInteraction, type APIInteractionResponseChannelMessageWithSource, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
 import { type Command } from '..'
+import { hasUserVotedByWeek } from '../db/hasUserVoted'
 import { saveVote } from '../db/storeVote'
 import { voteForUser } from '../db/voteForUser'
 import { buildLeaderboard } from '../process/buildLeaderboard'
@@ -41,15 +42,15 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
   }
 
   const currentWeekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))
-  // if (await hasUserVotedByWeek(voter.id, currentWeekNumber)) {
-  //   return {
-  //     type: InteractionResponseType.ChannelMessageWithSource,
-  //     data: {
-  //       content: 'You have already voted this week',
-  //       flags: MessageFlags.Ephemeral
-  //     }
-  //   }
-  // }
+  if (await hasUserVotedByWeek(voter.id, currentWeekNumber)) {
+    return {
+      type: InteractionResponseType.ChannelMessageWithSource,
+      data: {
+        content: 'You have already voted this week',
+        flags: MessageFlags.Ephemeral
+      }
+    }
+  }
 
   const userVotes = await voteForUser(votee)
   const [leaderboard] = await Promise.all([
