@@ -26,7 +26,7 @@ Instead it only uses Discord's interactions endpoint to handle commands.
 
 3. Set up your Discord bot:
   - Create a new Discord application and bot on the [Discord Developer Portal](https://discord.com/developers/applications).
-  - Add the bot to your server
+  - Add the bot to your server, e.g. `https://discord.com/oauth2/authorize?client_id=<clientId>&permissions=826781289536&scope=bot+applications.commands`
   - Create `.env` file from `.env.dist` and fill it out:
     ```
     DISCORD_TOKEN=your-bot-token
