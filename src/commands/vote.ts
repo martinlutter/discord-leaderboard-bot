@@ -1,6 +1,6 @@
 import { ContextMenuCommandBuilder } from '@discordjs/builders'
 import { isContextMenuApplicationCommandInteraction } from 'discord-api-types/utils'
-import { ApplicationCommandType, InteractionResponseType, MessageFlags, type APIChatInputApplicationCommandInteraction, type APIInteractionResponseChannelMessageWithSource, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
+import { ApplicationCommandType, type APIChatInputApplicationCommandInteraction, type APIInteractionResponseCallbackData, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
 import { type Command } from '..'
 import { hasUserVotedByWeek } from '../db/hasUserVoted'
 import { saveVote } from '../db/storeVote'
@@ -11,7 +11,7 @@ const builder = new ContextMenuCommandBuilder()
   .setName('vote')
   .setType(ApplicationCommandType.Message)
 
-const execute = async (interaction: APIChatInputApplicationCommandInteraction | APIMessageApplicationCommandInteraction): Promise<APIInteractionResponseChannelMessageWithSource> => {
+const execute = async (interaction: APIChatInputApplicationCommandInteraction | APIMessageApplicationCommandInteraction): Promise<APIInteractionResponseCallbackData> => {
   if (!isContextMenuApplicationCommandInteraction(interaction)) {
     throw new Error('Expected a context menu interaction')
   }
@@ -19,11 +19,7 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
   const messages = interaction.data.resolved?.messages
   if (!messages) {
     return {
-      type: InteractionResponseType.ChannelMessageWithSource,
-      data: {
-        content: 'No messages found :(',
-        flags: MessageFlags.Ephemeral
-      }
+      content: 'No messages found :('
     }
   }
 
@@ -33,22 +29,14 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
 
   if (votee.id === voter.id) {
     return {
-      type: InteractionResponseType.ChannelMessageWithSource,
-      data: {
-        content: 'You cannot vote for yourself',
-        flags: MessageFlags.Ephemeral
-      }
+      content: 'You cannot vote for yourself'
     }
   }
 
   const currentWeekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))
   if (await hasUserVotedByWeek(voter.id, currentWeekNumber)) {
     return {
-      type: InteractionResponseType.ChannelMessageWithSource,
-      data: {
-        content: 'You have already voted this week',
-        flags: MessageFlags.Ephemeral
-      }
+      content: 'You have already voted this week'
     }
   }
 
@@ -66,12 +54,8 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
   ])
 
   return {
-    type: InteractionResponseType.ChannelMessageWithSource,
-    data: {
-      content: `You voted for ${votee.username}, they now have ${userVotes.count} vote${userVotes.count ? 's' : ''}!`,
-      embeds: [leaderboard.data],
-      flags: MessageFlags.Ephemeral
-    }
+    content: `You voted for ${votee.username}, they now have ${userVotes.count} vote${userVotes.count > 1 ? 's' : ''}!`,
+    embeds: [leaderboard.data]
   }
 }
 

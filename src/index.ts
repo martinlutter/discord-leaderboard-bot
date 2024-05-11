@@ -1,13 +1,14 @@
+import { InvocationType, InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { type ContextMenuCommandBuilder, type SlashCommandBuilder } from '@discordjs/builders'
 import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } from 'aws-lambda'
-import { type APIChatInputApplicationCommandInteraction, type APIInteractionResponse, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
+import { MessageFlags, type APIChatInputApplicationCommandInteraction, type APIInteractionResponseCallbackData, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions'
 import { showLeaderboardCommand } from './commands/showLeaderboard'
 import { voteCommand } from './commands/vote'
 
 export interface Command {
   builder: Omit<SlashCommandBuilder | ContextMenuCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>
-  execute: (interaction: APIChatInputApplicationCommandInteraction | APIMessageApplicationCommandInteraction) => Promise<APIInteractionResponse>
+  execute: (interaction: APIChatInputApplicationCommandInteraction | APIMessageApplicationCommandInteraction) => Promise<APIInteractionResponseCallbackData>
 }
 
 export const commands = [
@@ -15,8 +16,10 @@ export const commands = [
   showLeaderboardCommand
 ]
 
-// const discordToken = process.env.DISCORD_TOKEN!
 const publicKey = process.env.APPLICATION_PUBLIC_KEY!
+const executeFunctionName = process.env.EXECUTE_FUNCTION_NAME!
+
+const lambda = new LambdaClient()
 
 export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
   const lowercaseHeaders = Object.fromEntries(
@@ -53,9 +56,17 @@ export const handler = async (event: APIGatewayProxyEvent, context: Context): Pr
       }
     }
 
+    await lambda.send(
+      new InvokeCommand({
+        FunctionName: executeFunctionName,
+        Payload: JSON.stringify(interaction),
+        InvocationType: InvocationType.Event
+      })
+    )
+
     return {
       statusCode: 200,
-      body: JSON.stringify(await command.execute(interaction))
+      body: JSON.stringify({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data: { flags: MessageFlags.Ephemeral } })
     }
   }
 

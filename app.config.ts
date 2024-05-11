@@ -12,10 +12,26 @@ config()
 const leaderboardTableName = 'LeaderboardTable'
 
 const app = new App()
-
 const stack = new Stack(app, 'LeaderboardBot')
 
-const interactionLambda = new NodejsFunction(stack, 'BotInteraction', {
+const commonEnvVars = {
+  DISCORD_TOKEN: process.env.DISCORD_TOKEN!,
+  LEADERBOARD_TABLE_NAME: leaderboardTableName
+}
+
+const executeLambda = new NodejsFunction(stack, 'Execute', {
+  runtime: Runtime.NODEJS_20_X,
+  entry: 'src/execute.ts',
+  bundling: {
+    minify: true
+  },
+  environment: commonEnvVars,
+  logRetention: RetentionDays.ONE_MONTH,
+  timeout: Duration.seconds(10),
+  memorySize: 256
+})
+
+const interactionLambda = new NodejsFunction(stack, 'Interaction', {
   runtime: Runtime.NODEJS_20_X,
   entry: 'src/index.ts',
   bundling: {
@@ -23,13 +39,15 @@ const interactionLambda = new NodejsFunction(stack, 'BotInteraction', {
   },
   environment: {
     APPLICATION_PUBLIC_KEY: process.env.APPLICATION_PUBLIC_KEY!,
-    DISCORD_TOKEN: process.env.DISCORD_TOKEN!,
-    LEADERBOARD_TABLE_NAME: leaderboardTableName
+    EXECUTE_FUNCTION_NAME: executeLambda.functionName,
+    ...commonEnvVars
   },
-  logRetention: RetentionDays.ONE_WEEK,
-  timeout: Duration.seconds(4),
+  logRetention: RetentionDays.ONE_MONTH,
+  timeout: Duration.seconds(3),
   memorySize: 256
 })
+
+executeLambda.grantInvoke(interactionLambda)
 
 const api = new RestApi(stack, 'BotInteractionEndpoint', {
   deployOptions: {
@@ -49,10 +67,9 @@ const closeMonthLambda = new NodejsFunction(stack, 'CloseMonth', {
   },
   environment: {
     CHANNEL_ID: process.env.CHANNEL_ID!,
-    DISCORD_TOKEN: process.env.DISCORD_TOKEN!,
-    LEADERBOARD_TABLE_NAME: leaderboardTableName
+    ...commonEnvVars
   },
-  logRetention: RetentionDays.ONE_WEEK,
+  logRetention: RetentionDays.ONE_MONTH,
   timeout: Duration.seconds(10),
   memorySize: 256
 })
@@ -69,7 +86,7 @@ const leaderboardTable = new TableV2(stack, 'LeaderboardTable', {
   sortKey: { name: 'sk', type: AttributeType.STRING },
   removalPolicy: RemovalPolicy.DESTROY
 })
-leaderboardTable.grantReadWriteData(interactionLambda)
+leaderboardTable.grantReadWriteData(executeLambda)
 leaderboardTable.grantReadWriteData(closeMonthLambda)
 
 app.synth()
