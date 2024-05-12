@@ -1,4 +1,4 @@
-import { db } from './client'
+import { db } from '../clients/db'
 import { leaderboardTableName } from './constants'
 
 export async function hasUserVotedByWeek (userId: string, weekNumber: number): Promise<boolean> {

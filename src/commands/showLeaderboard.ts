@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders'
 import { type APIChatInputApplicationCommandInteraction, type APIInteractionResponseCallbackData, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
 import { type Command } from '..'
-import { buildLeaderboard } from '../process/buildLeaderboard'
+import { buildLeaderboard } from '../process/buildLeaderboardEmbed'
 
 const builder = new SlashCommandBuilder()
   .setName('showleaderboard')

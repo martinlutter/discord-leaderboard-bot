@@ -5,7 +5,7 @@ import { type Command } from '..'
 import { hasUserVotedByWeek } from '../db/hasUserVoted'
 import { saveVote } from '../db/storeVote'
 import { voteForUser } from '../db/voteForUser'
-import { buildLeaderboard } from '../process/buildLeaderboard'
+import { buildLeaderboard } from '../process/buildLeaderboardEmbed'
 
 const builder = new ContextMenuCommandBuilder()
   .setName('vote')
@@ -33,7 +33,7 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
     }
   }
 
-  const currentWeekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))
+  const currentWeekNumber = getWeekNumber(new Date())
   if (await hasUserVotedByWeek(voter.id, currentWeekNumber)) {
     return {
       content: 'You have already voted this week'
@@ -49,7 +49,7 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
       weekNumber: currentWeekNumber,
       channelId: message.channel_id,
       messageId,
-      votedAt: new Date().toISOString()
+      votedAt: new Date()
     })
   ])
 
@@ -60,3 +60,7 @@ const execute = async (interaction: APIChatInputApplicationCommandInteraction | 
 }
 
 export const voteCommand: Command = { builder, execute }
+
+export function getWeekNumber(date: Date): number {
+  return Math.ceil((date.getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))
+}

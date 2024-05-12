@@ -1,19 +1,20 @@
 import { InvocationType, InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
-import { type ContextMenuCommandBuilder, type SlashCommandBuilder } from '@discordjs/builders'
 import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } from 'aws-lambda'
-import { MessageFlags, type APIChatInputApplicationCommandInteraction, type APIInteractionResponseCallbackData, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
+import { MessageFlags, RESTPostAPIChatInputApplicationCommandsJSONBody, RESTPostAPIContextMenuApplicationCommandsJSONBody, type APIChatInputApplicationCommandInteraction, type APIInteractionResponseCallbackData, type APIMessageApplicationCommandInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions'
 import { showLeaderboardCommand } from './commands/showLeaderboard'
+import { showVoteMessagesCommand } from './commands/showVoteMessages'
 import { voteCommand } from './commands/vote'
 
 export interface Command {
-  builder: Omit<SlashCommandBuilder | ContextMenuCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>
+  builder: { readonly name: string, toJSON(): RESTPostAPIChatInputApplicationCommandsJSONBody | RESTPostAPIContextMenuApplicationCommandsJSONBody }
   execute: (interaction: APIChatInputApplicationCommandInteraction | APIMessageApplicationCommandInteraction) => Promise<APIInteractionResponseCallbackData>
 }
 
 export const commands = [
   voteCommand,
-  showLeaderboardCommand
+  showLeaderboardCommand,
+  showVoteMessagesCommand
 ]
 
 const publicKey = process.env.APPLICATION_PUBLIC_KEY!

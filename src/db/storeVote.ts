@@ -1,4 +1,4 @@
-import { db } from './client'
+import { db } from '../clients/db'
 import { leaderboardTableName } from './constants'
 import { type RecordedVote } from './model/recordedVote'
 
@@ -8,7 +8,7 @@ export async function saveVote (vote: RecordedVote): Promise<void> {
     Item: {
       pk: `vote${vote.weekNumber}`,
       sk: `user${vote.voterId}`,
-      votedAt: vote.votedAt,
+      votedAt: vote.votedAt.toISOString(),
       channelId: vote.channelId,
       messageId: vote.messageId,
       voteeId: vote.voteeId

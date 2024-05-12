@@ -2,7 +2,7 @@ import { API } from '@discordjs/core/http-only'
 import { REST } from '@discordjs/rest'
 import { type Context, type EventBridgeEvent } from 'aws-lambda'
 import { clearVotesFromUsers } from './db/clearVotesFromUsers'
-import { buildLeaderboard } from './process/buildLeaderboard'
+import { buildLeaderboard } from './process/buildLeaderboardEmbed'
 
 const discordToken = process.env.DISCORD_TOKEN!
 const channelId = process.env.CHANNEL_ID!

@@ -1,4 +1,4 @@
-import { db } from './client'
+import { db } from '../clients/db'
 import { leaderboardTableName } from './constants'
 import { type Leaderboard } from './model/leaderboard'
 
