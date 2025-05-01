@@ -21,7 +21,11 @@ export async function voteForUser (votee: { id: string, username: string }): Pro
     ReturnValues: 'ALL_NEW'
   })
 
-  const updatedItem = result.Attributes!
+  const updatedItem = result.Attributes! as {
+    sk: string
+    name: string
+    count: number
+  }
 
   return {
     userId: updatedItem.sk,

@@ -8,10 +8,11 @@ export async function clearVotesFromUsers (): Promise<void> {
     ExpressionAttributeValues: {
       ':pk': 'votes'
     }
-  })
+  });
 
+  const items = (result.Items ?? []) as { sk: string }[];
   await Promise.all(
-    result.Items!.map(async item => await db.delete({
+    items.map(async item => await db.delete({
       TableName: leaderboardTableName,
       Key: {
         pk: 'votes',

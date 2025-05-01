@@ -16,14 +16,22 @@ export async function getVotesByWeekForUser(
     },
   });
 
+  const items = (result.Items ?? []) as {
+    sk: string;
+    voteeId: string;
+    channelId: string;
+    messageId: string;
+    votedAt: string;
+  }[];
+
   return (
-    result.Items?.map((item) => ({
+    items.map((item): RecordedVote => ({
       yearAndWeek,
       voterId: item.sk.replace("user", ""),
       voteeId: item.voteeId,
       channelId: item.channelId,
       messageId: item.messageId,
       votedAt: new Date(item.votedAt),
-    })) ?? []
+    }))
   );
 }

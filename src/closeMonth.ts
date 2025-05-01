@@ -1,6 +1,5 @@
 import { API } from '@discordjs/core/http-only'
 import { REST } from '@discordjs/rest'
-import { type Context, type EventBridgeEvent } from 'aws-lambda'
 import { clearVotesFromUsers } from './db/clearVotesFromUsers'
 import { buildLeaderboard } from './process/buildLeaderboardEmbed'
 
@@ -10,7 +9,7 @@ const channelId = process.env.CHANNEL_ID!
 const rest = new REST({ version: '10' }).setToken(discordToken)
 const api = new API(rest)
 
-export const handler = async (event: EventBridgeEvent<'MonthlyCron', void>, context: Context): Promise<void> => {
+export const handler = async (): Promise<void> => {
   const leaderboard = await buildLeaderboard()
   await api.channels.createMessage(channelId, {
     content: 'The month has ended! Here are the final results:',

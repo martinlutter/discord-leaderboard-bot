@@ -11,8 +11,10 @@ export async function getLeaderboard (): Promise<Leaderboard> {
     }
   })
 
+  const items = (result.Items ?? []) as { name: string, count: number }[]
+
   return {
-    users: result.Items!.map(item => ({
+    users: items.map(item => ({
       name: item.name,
       count: item.count
     }))

@@ -104,7 +104,6 @@ function getWeeksInCurrentMonth(): YearAndWeek[] {
   const weeksInMonth: YearAndWeek[] = [];
 
   const currentDay = firstDayOfMonth;
-  // eslint-disable-next-line no-unmodified-loop-condition
   while (currentDay <= lastDayOfMonth) {
     const yearAndWeek = getYearAndWeek(currentDay);
     if (
