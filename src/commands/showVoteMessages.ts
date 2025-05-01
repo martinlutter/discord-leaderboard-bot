@@ -107,7 +107,12 @@ function getWeeksInCurrentMonth(): YearAndWeek[] {
   // eslint-disable-next-line no-unmodified-loop-condition
   while (currentDay <= lastDayOfMonth) {
     const yearAndWeek = getYearAndWeek(currentDay);
-    if (!weeksInMonth.includes(yearAndWeek)) {
+    if (
+      !weeksInMonth.some(
+        (week) =>
+          week.year === yearAndWeek.year && week.week === yearAndWeek.week
+      )
+    ) {
       weeksInMonth.push(yearAndWeek);
     }
     currentDay.setDate(currentDay.getDate() + 1);
