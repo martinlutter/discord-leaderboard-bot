@@ -17,24 +17,24 @@
   "license": "MIT",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.136",
-    "@types/node": "^20.11.28",
-    "aws-cdk": "^2.133.0",
-    "esbuild": "^0.20.2",
-    "eslint": "^9.2.0",
+    "@types/node": "^22",
+    "aws-cdk": "^2.1013.0",
+    "esbuild": "^0.25.3",
+    "eslint": "^9.25.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.2"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.540.0",
-    "@aws-sdk/client-lambda": "^3.574.0",
-    "@aws-sdk/lib-dynamodb": "^3.540.0",
-    "@discordjs/builders": "^1.7.0",
-    "@discordjs/core": "^1.1.1",
-    "@discordjs/rest": "^2.2.0",
-    "aws-cdk-lib": "^2.133.0",
-    "constructs": "^10.3.0",
-    "discord-api-types": "^0.37.75",
-    "discord-interactions": "^3.4.0",
-    "dotenv": "^16.4.5"
+    "@aws-sdk/client-dynamodb": "^3.799.0",
+    "@aws-sdk/client-lambda": "^3.799.0",
+    "@aws-sdk/lib-dynamodb": "^3.799.0",
+    "@discordjs/builders": "^1.11.0",
+    "@discordjs/core": "^2.1.0",
+    "@discordjs/rest": "^2.5.0",
+    "aws-cdk-lib": "^2.193.0",
+    "constructs": "^10.4.2",
+    "discord-api-types": "^0.38.2",
+    "discord-interactions": "^4.1.1",
+    "dotenv": "^16.5.0"
   }
 }
