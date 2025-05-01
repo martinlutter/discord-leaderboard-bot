@@ -1,6 +1,6 @@
-import { db } from "../clients/db";
-import { leaderboardTableName } from "./constants";
-import { type RecordedVote } from "./model/recordedVote";
+import { db } from '../clients/db';
+import { leaderboardTableName } from './constants';
+import { type RecordedVote } from './model/recordedVote';
 
 export async function saveVote(vote: RecordedVote): Promise<void> {
   await db.put({

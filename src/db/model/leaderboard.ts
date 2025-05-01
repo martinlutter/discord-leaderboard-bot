@@ -1,3 +1,3 @@
 export interface Leaderboard {
-  readonly users: Array<{ name: string, count: number }>
+  readonly users: Array<{ name: string; count: number }>;
 }

@@ -1,18 +1,18 @@
-import { db } from "../clients/db";
-import { leaderboardTableName } from "./constants";
-import { RecordedVote } from "./model/recordedVote";
+import { db } from '../clients/db';
+import { leaderboardTableName } from './constants';
+import { RecordedVote } from './model/recordedVote';
 
 export async function getVotesByWeekForUser(
   yearAndWeek: string,
-  userId: string
+  userId: string,
 ): Promise<RecordedVote[]> {
   const result = await db.query({
     TableName: leaderboardTableName,
-    KeyConditionExpression: "pk = :pk",
-    FilterExpression: "voteeId = :voteeId",
+    KeyConditionExpression: 'pk = :pk',
+    FilterExpression: 'voteeId = :voteeId',
     ExpressionAttributeValues: {
-      ":pk": `vote${yearAndWeek}`,
-      ":voteeId": userId,
+      ':pk': `vote${yearAndWeek}`,
+      ':voteeId': userId,
     },
   });
 
@@ -24,14 +24,14 @@ export async function getVotesByWeekForUser(
     votedAt: string;
   }[];
 
-  return (
-    items.map((item): RecordedVote => ({
+  return items.map(
+    (item): RecordedVote => ({
       yearAndWeek,
-      voterId: item.sk.replace("user", ""),
+      voterId: item.sk.replace('user', ''),
       voteeId: item.voteeId,
       channelId: item.channelId,
       messageId: item.messageId,
       votedAt: new Date(item.votedAt),
-    }))
+    }),
   );
 }

@@ -1,18 +1,18 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { type APIMessage } from "@discordjs/core/http-only";
-import { isChatInputApplicationCommandInteraction } from "discord-api-types/utils";
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { type APIMessage } from '@discordjs/core/http-only';
+import { isChatInputApplicationCommandInteraction } from 'discord-api-types/utils';
 import {
   APIEmbedField,
   type APIApplicationCommandInteractionDataUserOption,
   type APIChatInputApplicationCommandInteraction,
   type APIInteractionResponseCallbackData,
   type APIMessageApplicationCommandInteraction,
-} from "discord-api-types/v10";
-import { type Command } from "..";
-import { discordApi } from "../clients/discordApi";
-import { getVotesByWeekForUser } from "../db/getVotes";
-import { type RecordedVote } from "../db/model/recordedVote";
-import { getYearAndWeek, getYearAndWeekString, YearAndWeek } from "./vote";
+} from 'discord-api-types/v10';
+import { type Command } from '..';
+import { discordApi } from '../clients/discordApi';
+import { getVotesByWeekForUser } from '../db/getVotes';
+import { type RecordedVote } from '../db/model/recordedVote';
+import { getYearAndWeek, getYearAndWeekString, YearAndWeek } from './vote';
 
 type VoteMessage = {
   vote: RecordedVote;
@@ -25,32 +25,32 @@ type GroupedVoteMessage = {
 };
 
 const builder = new SlashCommandBuilder()
-  .setName("showvotemessages")
-  .setDescription("Show all messages a person was voted for")
+  .setName('showvotemessages')
+  .setDescription('Show all messages a person was voted for')
   .addUserOption((option) =>
     option
-      .setName("user")
-      .setDescription("The user to show votes for")
-      .setRequired(true)
+      .setName('user')
+      .setDescription('The user to show votes for')
+      .setRequired(true),
   );
 
 const execute = async (
   interaction:
     | APIChatInputApplicationCommandInteraction
-    | APIMessageApplicationCommandInteraction
+    | APIMessageApplicationCommandInteraction,
 ): Promise<APIInteractionResponseCallbackData> => {
   if (!isChatInputApplicationCommandInteraction(interaction)) {
-    throw new Error("Expected a chat input interaction");
+    throw new Error('Expected a chat input interaction');
   }
 
   const userOptionValue = (
     interaction.data.options?.find(
-      (option) => option.name === "user"
+      (option) => option.name === 'user',
     ) as APIApplicationCommandInteractionDataUserOption
   ).value;
   const user = interaction.data.resolved?.users?.[userOptionValue];
   if (!user) {
-    return { content: "User not found" };
+    return { content: 'User not found' };
   }
 
   const weeksInMonth = getWeeksInCurrentMonth();
@@ -58,8 +58,8 @@ const execute = async (
   for (const weekNumber of weeksInMonth) {
     votes.push(
       ...filterVotesToCurrentMonth(
-        await getVotesByWeekForUser(getYearAndWeekString(weekNumber), user.id)
-      )
+        await getVotesByWeekForUser(getYearAndWeekString(weekNumber), user.id),
+      ),
     );
   }
 
@@ -71,10 +71,10 @@ const execute = async (
     votes.map(async (vote): Promise<VoteMessage> => {
       const message = await discordApi.channels.getMessage(
         vote.channelId,
-        vote.messageId
+        vote.messageId,
       );
       return { vote, message };
-    })
+    }),
   );
 
   return {
@@ -83,7 +83,7 @@ const execute = async (
       {
         fields: buildVoteEmbeds(
           groupVoteMessages(voteMessages),
-          interaction.guild_id!
+          interaction.guild_id!,
         ),
       },
     ],
@@ -109,7 +109,7 @@ function getWeeksInCurrentMonth(): YearAndWeek[] {
     if (
       !weeksInMonth.some(
         (week) =>
-          week.year === yearAndWeek.year && week.week === yearAndWeek.week
+          week.year === yearAndWeek.year && week.week === yearAndWeek.week,
       )
     ) {
       weeksInMonth.push(yearAndWeek);
@@ -127,7 +127,7 @@ function filterVotesToCurrentMonth(votes: RecordedVote[]): RecordedVote[] {
     1,
     0,
     0,
-    0
+    0,
   );
   const endOfMonth = new Date(
     new Date().getFullYear(),
@@ -136,11 +136,11 @@ function filterVotesToCurrentMonth(votes: RecordedVote[]): RecordedVote[] {
     23,
     59,
     59,
-    999
+    999,
   );
 
   return votes.filter(
-    (vote) => vote.votedAt > startOfMonth && vote.votedAt < endOfMonth
+    (vote) => vote.votedAt > startOfMonth && vote.votedAt < endOfMonth,
   );
 }
 
@@ -161,14 +161,14 @@ function groupVoteMessages(voteMessages: VoteMessage[]): GroupedVoteMessage[] {
 
 function buildVoteEmbeds(
   groupedVoteMessages: GroupedVoteMessage[],
-  guildId: string
+  guildId: string,
 ): APIEmbedField[] {
   return groupedVoteMessages
     .map((grouped) => ({
-      name: `${grouped.count} vote` + (grouped.count > 1 ? "s" : ""),
+      name: `${grouped.count} vote` + (grouped.count > 1 ? 's' : ''),
       value: `${grouped.voteMessage.message.content.substring(
         0,
-        100
+        100,
       )}...[Jump to full message](https://discord.com/channels/${guildId}/${
         grouped.voteMessage.vote.channelId
       }/${grouped.voteMessage.vote.messageId})`,
