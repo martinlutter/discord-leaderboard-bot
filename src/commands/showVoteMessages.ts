@@ -11,8 +11,11 @@ import {
 import { type Command } from '..';
 import { discordApi } from '../clients/discordApi';
 import { getVotesByWeekForUser } from '../db/getVotes';
-import { type RecordedVote } from '../db/model/recordedVote';
-import { getYearAndWeek, getYearAndWeekString, YearAndWeek } from './vote';
+import {
+  getYearAndWeekByDate,
+  YearAndWeek,
+  type RecordedVote,
+} from '../db/model/recordedVote';
 
 type VoteMessage = {
   vote: RecordedVote;
@@ -58,7 +61,7 @@ const execute = async (
   for (const weekNumber of weeksInMonth) {
     votes.push(
       ...filterVotesToCurrentMonth(
-        await getVotesByWeekForUser(getYearAndWeekString(weekNumber), user.id),
+        await getVotesByWeekForUser(weekNumber, user.id),
       ),
     );
   }
@@ -105,7 +108,7 @@ function getWeeksInCurrentMonth(): YearAndWeek[] {
 
   const currentDay = firstDayOfMonth;
   while (currentDay <= lastDayOfMonth) {
-    const yearAndWeek = getYearAndWeek(currentDay);
+    const yearAndWeek = getYearAndWeekByDate(currentDay);
     if (
       !weeksInMonth.some(
         (week) =>

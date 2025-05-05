@@ -1,9 +1,15 @@
 import { db } from '../clients/db';
 import { leaderboardTableName } from './constants';
-import { RecordedVote } from './model/recordedVote';
+import {
+  DynamoRecordedVote,
+  mapDynamoItemsToRecordedVote,
+  RecordedVote,
+  toRecordedVotePk,
+  YearAndWeek,
+} from './model/recordedVote';
 
 export async function getVotesByWeekForUser(
-  yearAndWeek: string,
+  yearAndWeek: YearAndWeek,
   userId: string,
 ): Promise<RecordedVote[]> {
   const result = await db.query({
@@ -11,27 +17,12 @@ export async function getVotesByWeekForUser(
     KeyConditionExpression: 'pk = :pk',
     FilterExpression: 'voteeId = :voteeId',
     ExpressionAttributeValues: {
-      ':pk': `vote${yearAndWeek}`,
+      ':pk': toRecordedVotePk(yearAndWeek),
       ':voteeId': userId,
     },
   });
 
-  const items = (result.Items ?? []) as {
-    sk: string;
-    voteeId: string;
-    channelId: string;
-    messageId: string;
-    votedAt: string;
-  }[];
+  const items = (result.Items ?? []) as DynamoRecordedVote[];
 
-  return items.map(
-    (item): RecordedVote => ({
-      yearAndWeek,
-      voterId: item.sk.replace('user', ''),
-      voteeId: item.voteeId,
-      channelId: item.channelId,
-      messageId: item.messageId,
-      votedAt: new Date(item.votedAt),
-    }),
-  );
+  return mapDynamoItemsToRecordedVote(items);
 }

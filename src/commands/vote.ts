@@ -11,11 +11,7 @@ import { hasUserVotedByWeek } from '../db/hasUserVoted';
 import { saveVote } from '../db/storeVote';
 import { voteForUser } from '../db/voteForUser';
 import { buildLeaderboard } from '../process/buildLeaderboardEmbed';
-
-export interface YearAndWeek {
-  readonly year: number;
-  readonly week: number;
-}
+import { getYearAndWeekByDate } from '../db/model/recordedVote';
 
 const builder = new ContextMenuCommandBuilder()
   .setName('vote')
@@ -47,7 +43,7 @@ const execute = async (
     };
   }
 
-  const yearAndWeek = getYearAndWeekString(getYearAndWeek(new Date()));
+  const yearAndWeek = getYearAndWeekByDate(new Date());
   if (await hasUserVotedByWeek(voter.id, yearAndWeek)) {
     return {
       content: 'You have already voted this week',
@@ -76,17 +72,3 @@ const execute = async (
 };
 
 export const voteCommand: Command = { builder, execute };
-
-export function getYearAndWeek(date: Date): YearAndWeek {
-  return {
-    year: date.getFullYear(),
-    week: Math.ceil(
-      (date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) /
-        (7 * 24 * 60 * 60 * 1000),
-    ),
-  };
-}
-
-export function getYearAndWeekString(yearAndWeek: YearAndWeek): string {
-  return `${yearAndWeek.year}W${yearAndWeek.week}`;
-}

@@ -1,15 +1,20 @@
 import { db } from '../clients/db';
 import { leaderboardTableName } from './constants';
+import {
+  toRecordedVotePk,
+  toRecordedVoteSk,
+  YearAndWeek,
+} from './model/recordedVote';
 
 export async function hasUserVotedByWeek(
   userId: string,
-  yearAndWeek: string,
+  yearAndWeek: YearAndWeek,
 ): Promise<boolean> {
   const result = await db.get({
     TableName: leaderboardTableName,
     Key: {
-      pk: `vote${yearAndWeek}`,
-      sk: `user${userId}`,
+      pk: toRecordedVotePk(yearAndWeek),
+      sk: toRecordedVoteSk(userId),
     },
   });
 
