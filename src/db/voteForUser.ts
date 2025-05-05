@@ -1,6 +1,12 @@
 import { db } from '../clients/db';
 import { leaderboardTableName } from './constants';
-import { type UserVotes } from './model/userVotes';
+import {
+  DynamoUserVotes,
+  mapDynamoItemToUserVotes,
+  toUserVotesPk,
+  toUserVotesSk,
+  type UserVotes,
+} from './model/userVotes';
 
 export async function voteForUser(votee: {
   id: string;
@@ -9,8 +15,8 @@ export async function voteForUser(votee: {
   const result = await db.update({
     TableName: leaderboardTableName,
     Key: {
-      pk: 'votes',
-      sk: `user${votee.id}`,
+      pk: toUserVotesPk(),
+      sk: toUserVotesSk(votee.id),
     },
     UpdateExpression: 'ADD #count :inc SET #name = :name',
     ExpressionAttributeNames: {
@@ -24,15 +30,7 @@ export async function voteForUser(votee: {
     ReturnValues: 'ALL_NEW',
   });
 
-  const updatedItem = result.Attributes! as {
-    sk: string;
-    name: string;
-    count: number;
-  };
+  const updatedItem = result.Attributes! as DynamoUserVotes;
 
-  return {
-    userId: updatedItem.sk,
-    name: updatedItem.name,
-    count: updatedItem.count,
-  };
+  return mapDynamoItemToUserVotes(updatedItem);
 }
