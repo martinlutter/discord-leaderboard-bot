@@ -2,6 +2,7 @@ import { db } from '../clients/db';
 import { leaderboardTableName } from './constants';
 import {
   DynamoUserVotes,
+  DynamoUserVotesKeys,
   mapDynamoItemToUserVotes,
   toUserVotesPk,
   toUserVotesSk,
@@ -15,13 +16,13 @@ export async function voteForUser(votee: {
   const result = await db.update({
     TableName: leaderboardTableName,
     Key: {
-      pk: toUserVotesPk(),
-      sk: toUserVotesSk(votee.id),
+      [DynamoUserVotesKeys.pk]: toUserVotesPk(),
+      [DynamoUserVotesKeys.sk]: toUserVotesSk(votee.id),
     },
     UpdateExpression: 'ADD #count :inc SET #name = :name',
     ExpressionAttributeNames: {
-      '#count': 'count',
-      '#name': 'name',
+      '#count': DynamoUserVotesKeys.count,
+      '#name': DynamoUserVotesKeys.name,
     },
     ExpressionAttributeValues: {
       ':inc': 1,

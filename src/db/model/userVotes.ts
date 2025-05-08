@@ -1,3 +1,5 @@
+import createAttributeNames from '../../util/createAttributeNames';
+
 export interface UserVotes {
   readonly userId: string;
   readonly name: string;
@@ -10,6 +12,8 @@ export interface DynamoUserVotes {
   readonly name: string;
   readonly count: number;
 }
+
+export const DynamoUserVotesKeys = createAttributeNames<DynamoUserVotes>();
 
 export function mapDynamoItemToUserVotes(item: DynamoUserVotes): UserVotes {
   return {

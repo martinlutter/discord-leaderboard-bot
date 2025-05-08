@@ -1,3 +1,5 @@
+import createAttributeNames from '../../util/createAttributeNames';
+
 export interface YearAndWeek {
   readonly year: number;
   readonly week: number;
@@ -20,6 +22,9 @@ export interface DynamoRecordedVote {
   readonly messageId: string;
   readonly votedAt: string; // ISO date string
 }
+
+export const DynamoRecordedVoteKeys =
+  createAttributeNames<DynamoRecordedVote>();
 
 export function mapRecordedVoteToDynamoItem(
   vote: RecordedVote,

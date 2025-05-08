@@ -3,6 +3,7 @@ import { leaderboardTableName } from './constants';
 import { type Leaderboard } from './model/leaderboard';
 import {
   DynamoUserVotes,
+  DynamoUserVotesKeys,
   mapDynamoItemsToUserVotes,
   toUserVotesPk,
 } from './model/userVotes';
@@ -10,7 +11,7 @@ import {
 export async function getLeaderboard(): Promise<Leaderboard> {
   const result = await db.query({
     TableName: leaderboardTableName,
-    KeyConditionExpression: 'pk = :pk',
+    KeyConditionExpression: `${DynamoUserVotesKeys.pk} = :pk`,
     ExpressionAttributeValues: {
       ':pk': toUserVotesPk(),
     },

@@ -2,6 +2,7 @@ import { db } from '../clients/db';
 import { leaderboardTableName } from './constants';
 import {
   DynamoRecordedVote,
+  DynamoRecordedVoteKeys,
   mapDynamoItemsToRecordedVote,
   RecordedVote,
   toRecordedVotePk,
@@ -14,7 +15,7 @@ export async function getVotesByWeekForUser(
 ): Promise<RecordedVote[]> {
   const result = await db.query({
     TableName: leaderboardTableName,
-    KeyConditionExpression: 'pk = :pk',
+    KeyConditionExpression: `${DynamoRecordedVoteKeys.pk} = :pk`,
     FilterExpression: 'voteeId = :voteeId',
     ExpressionAttributeValues: {
       ':pk': toRecordedVotePk(yearAndWeek),

@@ -2,6 +2,7 @@ import { db } from '../clients/db';
 import { leaderboardTableName } from './constants';
 import {
   DynamoUserVotes,
+  DynamoUserVotesKeys,
   toUserVotesPk,
   toUserVotesSk,
 } from './model/userVotes';
@@ -9,7 +10,7 @@ import {
 export async function clearVotesFromUsers(): Promise<void> {
   const result = await db.query({
     TableName: leaderboardTableName,
-    KeyConditionExpression: 'pk = :pk',
+    KeyConditionExpression: `${DynamoUserVotesKeys.pk} = :pk`,
     ExpressionAttributeValues: {
       ':pk': toUserVotesPk(),
     },
@@ -22,8 +23,8 @@ export async function clearVotesFromUsers(): Promise<void> {
         await db.delete({
           TableName: leaderboardTableName,
           Key: {
-            pk: toUserVotesPk(),
-            sk: toUserVotesSk(item.sk),
+            [DynamoUserVotesKeys.pk]: toUserVotesPk(),
+            [DynamoUserVotesKeys.sk]: toUserVotesSk(item.sk),
           },
         }),
     ),
