@@ -30,12 +30,12 @@ export function mapRecordedVoteToDynamoItem(
   vote: RecordedVote,
 ): DynamoRecordedVote {
   return {
-    pk: toRecordedVotePk(vote.yearAndWeek),
-    sk: toRecordedVoteSk(vote.voterId),
-    voteeId: vote.voteeId,
-    channelId: vote.channelId,
-    messageId: vote.messageId,
-    votedAt: vote.votedAt.toISOString(),
+    [DynamoRecordedVoteKeys.pk]: toRecordedVotePk(vote.yearAndWeek),
+    [DynamoRecordedVoteKeys.sk]: toRecordedVoteSk(vote.voterId),
+    [DynamoRecordedVoteKeys.voteeId]: vote.voteeId,
+    [DynamoRecordedVoteKeys.channelId]: vote.channelId,
+    [DynamoRecordedVoteKeys.messageId]: vote.messageId,
+    [DynamoRecordedVoteKeys.votedAt]: vote.votedAt.toISOString(),
   };
 }
 

@@ -16,7 +16,7 @@ export async function getVotesByWeekForUser(
   const result = await db.query({
     TableName: leaderboardTableName,
     KeyConditionExpression: `${DynamoRecordedVoteKeys.pk} = :pk`,
-    FilterExpression: 'voteeId = :voteeId',
+    FilterExpression: `${DynamoRecordedVoteKeys.voteeId} = :voteeId`,
     ExpressionAttributeValues: {
       ':pk': toRecordedVotePk(yearAndWeek),
       ':voteeId': userId,

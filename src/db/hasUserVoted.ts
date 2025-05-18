@@ -1,6 +1,7 @@
 import { db } from '../clients/db';
 import { leaderboardTableName } from './constants';
 import {
+  DynamoRecordedVoteKeys,
   toRecordedVotePk,
   toRecordedVoteSk,
   YearAndWeek,
@@ -13,8 +14,8 @@ export async function hasUserVotedByWeek(
   const result = await db.get({
     TableName: leaderboardTableName,
     Key: {
-      pk: toRecordedVotePk(yearAndWeek),
-      sk: toRecordedVoteSk(userId),
+      [DynamoRecordedVoteKeys.pk]: toRecordedVotePk(yearAndWeek),
+      [DynamoRecordedVoteKeys.sk]: toRecordedVoteSk(userId),
     },
   });
 
