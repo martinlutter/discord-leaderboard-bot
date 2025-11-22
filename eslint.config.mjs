@@ -6,7 +6,12 @@ import prettierConfig from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', 'cdk.out', 'eslint.config.mjs'],
+    ignores: [
+      '**/node_modules/**',
+      'cdk.out',
+      'eslint.config.mjs',
+      'jest.config.js',
+    ],
   },
   eslint.configs.recommended,
   tseslint.configs.recommendedTypeChecked,
