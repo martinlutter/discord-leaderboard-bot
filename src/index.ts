@@ -74,6 +74,7 @@ export const handler = async (
   if (bodyObject.type === InteractionType.Ping) {
     return {
       statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: InteractionResponseType.PONG }),
     };
   }
