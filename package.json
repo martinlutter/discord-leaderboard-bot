@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "deploy": "cdk deploy --profile discord-leaderboard-bot",
-    "deploy:commands": "ts-node scripts/deployCommands.ts",
+    "deploy:commands": "AWS_PROFILE=discord-leaderboard-bot ts-node scripts/deployCommands.ts",
     "test": "jest"
   },
   "keywords": [

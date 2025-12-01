@@ -1,9 +1,9 @@
 import { Routes } from 'discord-api-types/v10';
 import { config } from 'dotenv';
+config();
 import { commands } from '../src';
 import { discordRest } from '../src/clients/discordApi';
 
-config();
 const clientId = process.env.APPLICATION_CLIENT_ID!;
 const guildId = process.env.GUILD_ID!;
 

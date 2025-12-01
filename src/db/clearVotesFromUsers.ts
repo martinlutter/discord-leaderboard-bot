@@ -4,7 +4,6 @@ import {
   DynamoUserVotes,
   DynamoUserVotesKeys,
   toUserVotesPk,
-  toUserVotesSk,
 } from './model/userVotes';
 
 export async function clearVotesFromUsers(): Promise<void> {
@@ -24,7 +23,7 @@ export async function clearVotesFromUsers(): Promise<void> {
           TableName: leaderboardTableName,
           Key: {
             [DynamoUserVotesKeys.pk]: toUserVotesPk(),
-            [DynamoUserVotesKeys.sk]: toUserVotesSk(item.sk),
+            [DynamoUserVotesKeys.sk]: item.sk,
           },
         }),
     ),
