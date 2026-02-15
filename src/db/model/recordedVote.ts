@@ -63,13 +63,37 @@ function mapStringToYearAndWeek(yearAndWeekString: string): YearAndWeek {
   return { year, week };
 }
 
+/**
+ * Get ISO 8601 week number and year for a given date.
+ * ISO 8601 weeks start on Monday and week 1 is the week containing the first Thursday.
+ * This means dates in early January might belong to the previous year's last week,
+ * and dates in late December might belong to the next year's week 1.
+ */
 export function getYearAndWeekByDate(date: Date): YearAndWeek {
+  // Create a copy to avoid mutating the input
+  const target = new Date(date.valueOf());
+
+  // ISO week date weeks start on Monday (1) and end on Sunday (7)
+  const dayNum = (target.getDay() + 6) % 7; // Make Monday = 0, Sunday = 6
+
+  // Set to nearest Thursday (current date + 4 - current day number)
+  target.setDate(target.getDate() - dayNum + 3);
+
+  // Get first day of year
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+
+  // Set to nearest Thursday of first week
+  const firstThursdayDayNum = (firstThursday.getDay() + 6) % 7;
+  firstThursday.setDate(firstThursday.getDate() - firstThursdayDayNum + 3);
+
+  // Calculate week number
+  const weekNumber = Math.round(
+    (target.getTime() - firstThursday.getTime()) / (7 * 24 * 60 * 60 * 1000),
+  ) + 1;
+
   return {
-    year: date.getFullYear(),
-    week: Math.ceil(
-      (date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) /
-        (7 * 24 * 60 * 60 * 1000),
-    ),
+    year: target.getFullYear(),
+    week: weekNumber,
   };
 }
 
