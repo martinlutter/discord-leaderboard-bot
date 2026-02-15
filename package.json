@@ -4,7 +4,8 @@
   "description": "crud custom leaderboards in a discord server",
   "main": "index.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
+    "clean": "rm -rf dist",
     "deploy": "cdk deploy --profile discord-leaderboard-bot",
     "deploy:commands": "AWS_PROFILE=discord-leaderboard-bot ts-node scripts/deployCommands.ts",
     "test": "jest"
