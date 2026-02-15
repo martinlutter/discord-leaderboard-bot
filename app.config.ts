@@ -85,6 +85,7 @@ const leaderboardTable = new TableV2(stack, 'LeaderboardTable', {
   partitionKey: { name: 'pk', type: AttributeType.STRING },
   sortKey: { name: 'sk', type: AttributeType.STRING },
   removalPolicy: RemovalPolicy.DESTROY,
+  timeToLiveAttribute: 'ttl',
 });
 leaderboardTable.grantReadWriteData(executeLambda);
 leaderboardTable.grantReadWriteData(closeMonthLambda);

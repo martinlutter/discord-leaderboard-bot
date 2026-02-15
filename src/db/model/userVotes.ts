@@ -11,9 +11,27 @@ export interface DynamoUserVotes {
   readonly sk: string; // user{userId}
   readonly name: string;
   readonly count: number;
+  readonly ttl: number; // Unix timestamp (seconds) when this item expires
 }
 
 export const DynamoUserVotesKeys = createAttributeNames<DynamoUserVotes>();
+
+/**
+ * Calculate TTL timestamp for end of current month + 1 day buffer.
+ * The buffer ensures the final leaderboard is posted before items expire.
+ * Returns Unix timestamp in seconds (required by DynamoDB TTL).
+ */
+export function calculateMonthEndTTL(now: Date = new Date()): number {
+  // Use UTC to ensure consistent behavior across timezones
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth();
+
+  // Create date for 2nd day of next month at midnight UTC (end of month + 1 day buffer)
+  const ttlTimestamp = Date.UTC(year, month + 1, 2, 0, 0, 0, 0);
+
+  // DynamoDB TTL expects Unix timestamp in seconds
+  return Math.floor(ttlTimestamp / 1000);
+}
 
 export function mapDynamoItemToUserVotes(item: DynamoUserVotes): UserVotes {
   return {
