@@ -12,6 +12,7 @@ export interface DynamoUserVotes {
   readonly name: string;
   readonly count: number;
   readonly ttl: number; // Unix timestamp (seconds) when this item expires
+  readonly votingPeriod: string; // Format: "YYYY-MM" (e.g., "2025-07")
 }
 
 export const DynamoUserVotesKeys = createAttributeNames<DynamoUserVotes>();
@@ -31,6 +32,16 @@ export function calculateMonthEndTTL(now: Date = new Date()): number {
 
   // DynamoDB TTL expects Unix timestamp in seconds
   return Math.floor(ttlTimestamp / 1000);
+}
+
+/**
+ * Get the current voting period identifier (YYYY-MM format).
+ * This is used to detect when votes carry over from a previous month.
+ */
+export function getCurrentVotingPeriod(now: Date = new Date()): string {
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0'); // Add 1 because getUTCMonth() is 0-indexed
+  return `${year}-${month}`;
 }
 
 export function mapDynamoItemToUserVotes(item: DynamoUserVotes): UserVotes {

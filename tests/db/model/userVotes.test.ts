@@ -1,5 +1,6 @@
 import {
   calculateMonthEndTTL,
+  getCurrentVotingPeriod,
   mapDynamoItemToUserVotes,
   mapDynamoItemsToUserVotes,
   toUserVotesPk,
@@ -142,6 +143,7 @@ describe('mapDynamoItemToUserVotes', () => {
       name: 'JohnDoe',
       count: 5,
       ttl: 1719878400,
+      votingPeriod: '2025-06',
     };
 
     const result = mapDynamoItemToUserVotes(dynamoItem);
@@ -160,6 +162,7 @@ describe('mapDynamoItemToUserVotes', () => {
       name: 'Alice',
       count: 10,
       ttl: 1719878400,
+      votingPeriod: '2025-06',
     };
 
     const result = mapDynamoItemToUserVotes(dynamoItem);
@@ -177,6 +180,7 @@ describe('mapDynamoItemsToUserVotes', () => {
         name: 'Alice',
         count: 3,
         ttl: 1719878400,
+        votingPeriod: '2025-06',
       },
       {
         pk: 'votes',
@@ -184,6 +188,7 @@ describe('mapDynamoItemsToUserVotes', () => {
         name: 'Bob',
         count: 7,
         ttl: 1719878400,
+        votingPeriod: '2025-06',
       },
     ];
 
@@ -218,5 +223,53 @@ describe('toUserVotesSk', () => {
     const sk = toUserVotesSk(userId);
     expect(sk).toBe('userabc123');
     expect(sk.startsWith('user')).toBe(true);
+  });
+});
+
+describe('getCurrentVotingPeriod', () => {
+  it('returns current period in YYYY-MM format', () => {
+    const testDate = new Date('2025-06-15T14:30:00Z');
+    const period = getCurrentVotingPeriod(testDate);
+    expect(period).toBe('2025-06');
+  });
+
+  it('handles January correctly', () => {
+    const testDate = new Date('2025-01-01T00:00:00Z');
+    const period = getCurrentVotingPeriod(testDate);
+    expect(period).toBe('2025-01');
+  });
+
+  it('handles December correctly', () => {
+    const testDate = new Date('2025-12-31T23:59:59Z');
+    const period = getCurrentVotingPeriod(testDate);
+    expect(period).toBe('2025-12');
+  });
+
+  it('pads single-digit months with zero', () => {
+    const periods = [
+      { date: new Date('2025-01-15T12:00:00Z'), expected: '2025-01' },
+      { date: new Date('2025-02-15T12:00:00Z'), expected: '2025-02' },
+      { date: new Date('2025-09-15T12:00:00Z'), expected: '2025-09' },
+      { date: new Date('2025-10-15T12:00:00Z'), expected: '2025-10' },
+      { date: new Date('2025-11-15T12:00:00Z'), expected: '2025-11' },
+    ];
+
+    periods.forEach(({ date, expected }) => {
+      expect(getCurrentVotingPeriod(date)).toBe(expected);
+    });
+  });
+
+  it('uses current date when no argument provided', () => {
+    const period = getCurrentVotingPeriod();
+    // Should match format YYYY-MM
+    expect(period).toMatch(/^\d{4}-\d{2}$/);
+  });
+
+  it('uses UTC month, not local month', () => {
+    // Test date that might be different month in different timezones
+    // Jan 1 00:30 UTC could be Dec 31 in some timezones
+    const testDate = new Date('2025-01-01T00:30:00Z');
+    const period = getCurrentVotingPeriod(testDate);
+    expect(period).toBe('2025-01'); // Should be January, not December
   });
 });
